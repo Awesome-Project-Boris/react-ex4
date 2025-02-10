@@ -7,6 +7,9 @@ import {
   StyleSheet,
   Modal,
   TextInput,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useLists } from '../context/ListsContext';
 import { useNavigation } from '@react-navigation/native';
@@ -41,7 +44,7 @@ export default function MyLists() {
           : list
       )
     );
-    
+
     setEditModalVisible(false);
     setEditingList(null);
     setListName('');
@@ -52,8 +55,6 @@ export default function MyLists() {
     if (itemName.trim() !== '') {
       setItems((prev) => [...prev, { name: itemName.trim(), checked: false }]);
       setItemName('');
-
-      
       itemInputRef.current?.focus();
     }
   };
@@ -62,7 +63,6 @@ export default function MyLists() {
     setItems(items.filter((_, i) => i !== index));
   };
 
-   
   const handleDeletePress = (list) => {
     setListToDelete(list);
     setDeleteModalVisible(true);
@@ -74,7 +74,7 @@ export default function MyLists() {
         prevLists.filter((list) => list.id !== listToDelete.id)
       );
     }
-    
+
     setListToDelete(null);
     setDeleteModalVisible(false);
   };
@@ -85,123 +85,137 @@ export default function MyLists() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.mainHeader}>My Lists</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Text style={styles.mainHeader}>My Lists</Text>
 
-      <FlatList
-        data={lists}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.listContainer}>
-            
-            <TouchableOpacity
-              style={styles.listContent}
-              onPress={() => navigation.navigate('item', { listId: item.id })}
-            >
-              <Text style={styles.listName}>{item.name || 'Unnamed List'}</Text>
-            </TouchableOpacity>
-
-            <View style={styles.iconContainer}>
-              <TouchableOpacity onPress={() => openEditModal(item)}>
-                <Text style={styles.editIcon}>✏</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeletePress(item)}>
-                <Text style={styles.deleteIcon}>🗑</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-      />
-
-      <Modal visible={deleteModalVisible} transparent animationType="fade">
-        <View style={styles.modalContainer}>
-          <View style={[styles.modalContent, { padding: 20 }]}>
-            <Text style={styles.modalTitle}>
-              Are you sure you want to delete{' '}
-              <Text style={{ fontWeight: 'bold' }}>
-                {listToDelete?.name || 'this list'}
-              </Text>
-              ?
-            </Text>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.saveButton} onPress={confirmDelete}>
-                <Text style={styles.buttonText}>Delete</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelButton} onPress={cancelDelete}>
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-      
-      <Modal visible={editModalVisible} animationType="slide" transparent>
-        <View style={styles.modalContainer}>
-          
-          <View style={styles.formContainer}>
-            
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>List Name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter list name"
-                value={listName}
-                onChangeText={setListName}
-              />
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Items</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Add an item"
-                value={itemName}
-                onChangeText={setItemName}
-                onSubmitEditing={addItem}
-                
-                ref={itemInputRef}
-              />
-              <TouchableOpacity style={styles.addButton} onPress={addItem}>
-                <Text style={styles.buttonText}>Add Item</Text>
-              </TouchableOpacity>
-
-              <FlatList
-                data={items}
-                keyExtractor={(_, index) => index.toString()}
-                renderItem={({ item, index }) => (
-                  <View style={styles.itemContainer}>
-                    <Text style={styles.itemText}>{item.name}</Text>
-                    <TouchableOpacity onPress={() => removeItem(index)}>
-                      <Text style={styles.deleteItemText}>✖</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              />
-            </View>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
-                <Text style={styles.buttonText}>Save</Text>
-              </TouchableOpacity>
+        <FlatList
+          data={lists}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.listContainer}>
               <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setEditModalVisible(false)}
+                style={styles.listContent}
+                onPress={() => navigation.navigate('item', { listId: item.id })}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.listName}>{item.name || 'Unnamed List'}</Text>
               </TouchableOpacity>
+
+              <View style={styles.iconContainer}>
+                <TouchableOpacity onPress={() => openEditModal(item)}>
+                  <Text style={styles.editIcon}>✏</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeletePress(item)}>
+                  <Text style={styles.deleteIcon}>🗑</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+          scrollEnabled={false}
+          ListEmptyComponent={
+            <Text style={styles.emptyListText}>No lists available</Text>
+          }
+        />
+
+        <Modal visible={deleteModalVisible} transparent animationType="fade">
+          <View style={styles.modalContainer}>
+            <View style={[styles.modalContent, { padding: 20 }]}>
+              <Text style={styles.modalTitle}>
+                Are you sure you want to delete{' '}
+                <Text style={{ fontWeight: 'bold' }}>
+                  {listToDelete?.name || 'this list'}
+                </Text>
+                ?
+              </Text>
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.saveButton} onPress={confirmDelete}>
+                  <Text style={styles.buttonText}>Delete</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.cancelButton} onPress={cancelDelete}>
+                  <Text style={styles.buttonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+
+        <Modal visible={editModalVisible} animationType="slide" transparent>
+          <ScrollView contentContainerStyle={styles.modalScrollContainer}>
+            <View style={styles.formContainer}>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>List Name</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter list name"
+                  value={listName}
+                  onChangeText={setListName}
+                />
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Items</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Add an item"
+                  value={itemName}
+                  onChangeText={setItemName}
+                  onSubmitEditing={addItem}
+                  ref={itemInputRef}
+                />
+                <TouchableOpacity style={styles.addButton} onPress={addItem}>
+                  <Text style={styles.buttonText}>Add Item</Text>
+                </TouchableOpacity>
+
+                <FlatList
+                  data={items}
+                  keyExtractor={(_, index) => index.toString()}
+                  renderItem={({ item, index }) => (
+                    <View style={styles.itemContainer}>
+                      <Text style={styles.itemText}>{item.name}</Text>
+                      <TouchableOpacity onPress={() => removeItem(index)}>
+                        <Text style={styles.deleteItemText}>✖</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  scrollEnabled={false}
+                />
+              </View>
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
+                  <Text style={styles.buttonText}>Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setEditModalVisible(false)}
+                >
+                  <Text style={styles.buttonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        </Modal>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
-
-
-
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 20,
+    backgroundColor: '#e6f4ea',
+  },
+  modalScrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
   container: {
     flex: 1,
     padding: 20,
@@ -361,3 +375,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
+
+

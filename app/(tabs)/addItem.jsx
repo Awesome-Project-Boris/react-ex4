@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useLists } from '../context/ListsContext';
 import { useNavigation } from '@react-navigation/native';
@@ -43,59 +46,71 @@ export default function AddItemScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>List Name</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter list name"
-          value={listName}
-          onChangeText={setListName}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Items</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Add an item"
-          value={itemName}
-          onChangeText={setItemName}
-          onSubmitEditing={addItem}
-      
-          ref={itemInputRef}
-        />
-        <TouchableOpacity style={styles.addButton} onPress={addItem}>
-          <Text style={styles.buttonText}>Add Item</Text>
-        </TouchableOpacity>
-
-        <FlatList
-          data={items}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.itemContainer}>
-              <Text style={styles.itemText}>{item.name}</Text>
-            </View>
-          )}
-        />
-      </View>
-
-      <TouchableOpacity
-        style={styles.createButton}
-        onPress={createList}
-        disabled={listName.trim() === '' || items.length === 0}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.buttonText}>Create List</Text>
-      </TouchableOpacity>
-    </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>List Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter list name"
+            value={listName}
+            onChangeText={setListName}
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Items</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Add an item"
+            value={itemName}
+            onChangeText={setItemName}
+            onSubmitEditing={addItem}
+            ref={itemInputRef}
+          />
+          <TouchableOpacity style={styles.addButton} onPress={addItem}>
+            <Text style={styles.buttonText}>Add Item</Text>
+          </TouchableOpacity>
+
+          <FlatList
+            data={items}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.itemContainer}>
+                <Text style={styles.itemText}>{item.name}</Text>
+              </View>
+            )}
+            
+            scrollEnabled={false}
+            ListEmptyComponent={
+              <Text style={styles.emptyListText}>No items added</Text>
+            }
+          />
+        </View>
+
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={createList}
+          disabled={listName.trim() === '' || items.length === 0}
+        >
+          <Text style={styles.buttonText}>Create List</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  scrollContainer: {
+    flexGrow: 1,
     padding: 20,
-    backgroundColor: '#e6f4ea'
+    backgroundColor: '#e6f4ea', 
   },
   section: {
     marginBottom: 20,
@@ -155,5 +170,11 @@ const styles = StyleSheet.create({
   itemText: {
     fontSize: 16,
     color: '#2c6e49',
+  },
+  emptyListText: {
+    fontSize: 16,
+    color: '#6c757d',
+    textAlign: 'center',
+    marginTop: 10,
   },
 });

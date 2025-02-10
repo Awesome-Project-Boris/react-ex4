@@ -1,7 +1,16 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, Switch } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Switch,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { useLists } from './context/ListsContext'; 
+import { useLists } from './context/ListsContext';
 import ConfettiCannon from 'react-native-confetti-cannon';
 
 export default function ItemScreen() {
@@ -19,63 +28,72 @@ export default function ItemScreen() {
     );
   }
 
-  
   const hasItems = list.items.length > 0;
-  
   const allChecked = hasItems && list.items.every((item) => item.checked);
 
   return (
-    <View style={styles.container}>
-      {/* List Title */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.title}>{list.name}</Text>
-      </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* List Title */}
+        <View style={styles.headerContainer}>
+          <Text style={styles.title}>{list.name}</Text>
+        </View>
 
-      {/* Items List */}
-      <View style={styles.itemsContainer}>
-        <FlatList
-          data={list.items}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item, index }) => (
-            <View style={styles.itemContainer}>
-              <Switch
-                value={item.checked}
-                onValueChange={() => toggleItemChecked(listId, index)}
-                trackColor={{ false: 'lightgray', true: '#2c6e49' }}
-                thumbColor="#fff"
-              />
-              <Text style={[styles.itemText, item.checked && styles.itemChecked]}>
-                {item.name}
-              </Text>
-            </View>
-          )}
-          
-          ListEmptyComponent={
-            <Text style={styles.emptyListText}>No items on list</Text>
-          }
-        />
-      </View>
+        {/* Items List */}
+        <View style={styles.itemsContainer}>
+          <FlatList
+            data={list.items}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item, index }) => (
+              <View style={styles.itemContainer}>
+                <Switch
+                  value={item.checked}
+                  onValueChange={() => toggleItemChecked(listId, index)}
+                  trackColor={{ false: 'lightgray', true: '#2c6e49' }}
+                  thumbColor="#fff"
+                />
+                <Text
+                  style={[
+                    styles.itemText,
+                    item.checked && styles.itemChecked,
+                  ]}
+                >
+                  {item.name}
+                </Text>
+              </View>
+            )}
+            // Prevent FlatList from scrolling independently
+            scrollEnabled={false}
+            ListEmptyComponent={
+              <Text style={styles.emptyListText}>No items on list</Text>
+            }
+          />
+        </View>
 
-      {/* Confetti when all items checked (but only if there are items) */}
-      {allChecked && (
-        <ConfettiCannon
-          count={150}
-          origin={{ x: 200, y: -10 }}
-          fadeOut={true}
-          fallSpeed={2000}
-          explosionSpeed={800}
-          colors={['#ff6347', '#ffa500', '#1e90ff', '#32cd32', '#ffff00']}
-        />
-      )}
-    </View>
+        {/* Confetti when all items checked */}
+        {allChecked && (
+          <ConfettiCannon
+            count={150}
+            origin={{ x: 200, y: -10 }}
+            fadeOut={true}
+            fallSpeed={2000}
+            explosionSpeed={800}
+            colors={['#ff6347', '#ffa500', '#1e90ff', '#32cd32', '#ffff00']}
+          />
+        )}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  scrollContainer: {
+    flexGrow: 1,
     padding: 20,
-    backgroundColor: '#e6f4ea', 
+    backgroundColor: '#e6f4ea',
   },
   headerContainer: {
     paddingVertical: 20,
@@ -103,7 +121,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
-    flex: 1,
   },
   itemContainer: {
     flexDirection: 'row',
